@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RubberCarbon — ประเมินคาร์บอนสวนยางพารา จังหวัดระยอง</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;600;700;800&display=swap" rel="stylesheet" />
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Noto Sans Thai', sans-serif;
+      background: #f7f5f0;
+      color: #1a1a1a;
+      line-height: 1.6;
+    }
+
+    /* ── แถบนำทาง ── */
+    nav {
+      background: #fff;
+      border-bottom: 1px solid #e5e5e5;
+      padding: 16px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .logo {
+      font-size: 20px;
+      font-weight: 700;
+      color: #2d6a2d;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .logo-dot {
+      width: 10px; height: 10px;
+      background: #4caf50;
+      border-radius: 50%;
+    }
+
+    nav a {
+      text-decoration: none;
+      color: #555;
+      margin-left: 24px;
+      font-size: 14px;
+    }
+    nav a:hover { color: #2d6a2d; }
+
+    nav a.btn {
+      background: #2d6a2d;
+      color: #fff;
+      padding: 8px 18px;
+      border-radius: 8px;
+    }
+
+    /* ── Hero ── */
+    .hero { text-align: center; padding: 80px 24px 60px; }
+
+    .hero .tag {
+      display: inline-block;
+      background: #e8f5e9;
+      color: #2d6a2d;
+      font-size: 13px;
+      padding: 4px 14px;
+      border-radius: 20px;
+      margin-bottom: 20px;
+    }
+
+    .hero h1 {
+      font-size: 40px;
+      font-weight: 800;
+      line-height: 1.25;
+      margin-bottom: 16px;
+    }
+    .hero h1 b { color: #2d6a2d; }
+
+    .hero p {
+      font-size: 16px;
+      color: #666;
+      max-width: 580px;
+      margin: 0 auto 32px;
+      line-height: 1.8;
+    }
+
+    .hero-btns {
+      display: flex; gap: 12px;
+      justify-content: center; flex-wrap: wrap;
+    }
+
+    .btn-green {
+      background: #2d6a2d; color: #fff;
+      padding: 12px 28px; border-radius: 8px;
+      font-size: 15px; font-weight: 600;
+      text-decoration: none; border: none; cursor: pointer;
+    }
+    .btn-green:hover { background: #235523; }
+
+    .btn-outline {
+      background: transparent; color: #2d6a2d;
+      padding: 12px 24px; border-radius: 8px;
+      font-size: 15px; font-weight: 600;
+      text-decoration: none;
+      border: 2px solid #2d6a2d; cursor: pointer;
+    }
+    .btn-outline:hover { background: #e8f5e9; }
+
+    /* ── สถิติ ── */
+    .stats {
+      display: flex;
+      justify-content: center;
+      gap: 44px;
+      padding: 36px 24px;
+      background: #fff;
+      border-top: 1px solid #e5e5e5;
+      border-bottom: 1px solid #e5e5e5;
+      flex-wrap: wrap;
+    }
+
+    .stat { text-align: center; }
+    .stat-num { font-size: 30px; font-weight: 800; color: #2d6a2d; }
+    .stat-label { font-size: 13px; color: #888; margin-top: 4px; }
+
+    /* ── ส่วนเนื้อหา ── */
+    .section { padding: 60px 24px; max-width: 840px; margin: 0 auto; }
+
+    .section h2 {
+      font-size: 26px; font-weight: 700;
+      text-align: center; margin-bottom: 12px;
+    }
+
+    .section .lead {
+      font-size: 15px; color: #666;
+      text-align: center; line-height: 1.8;
+      max-width: 640px; margin: 0 auto 40px;
+    }
+
+    .steps { display: flex; flex-direction: column; gap: 20px; }
+
+    .step {
+      display: flex; gap: 20px; align-items: flex-start;
+      background: #fff; border: 1px solid #e5e5e5;
+      border-radius: 12px; padding: 22px 24px;
+    }
+
+    .step-num {
+      width: 34px; height: 34px;
+      background: #2d6a2d; color: #fff;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 15px; flex-shrink: 0;
+    }
+
+    .step h3 { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+    .step p  { font-size: 14px; color: #666; line-height: 1.75; }
+
+    /* ── ตารางผล ── */
+    .result-wrap {
+      background: #fff; border: 1px solid #e5e5e5;
+      border-radius: 12px; overflow-x: auto;
+    }
+
+    table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 420px; }
+    th, td { padding: 12px 18px; text-align: left; border-bottom: 1px solid #f0f0f0; }
+    th { background: #f4f9f4; font-weight: 700; color: #2d6a2d; font-size: 13px; }
+    td.num { text-align: right; font-variant-numeric: tabular-nums; }
+    tr:last-child td { border-bottom: none; }
+    tr.hl td { background: #f4f9f4; font-weight: 700; }
+
+    /* ── ข้อจำกัด ── */
+    .note {
+      background: #fffbea;
+      border: 1px solid #f0e2b0;
+      border-left: 4px solid #d4a017;
+      border-radius: 8px;
+      padding: 20px 24px;
+      margin-top: 26px;
+    }
+    .note h3 { font-size: 15px; font-weight: 700; margin-bottom: 10px; color: #7a5c00; }
+    .note ul { margin: 0; padding-left: 20px; }
+    .note li { font-size: 14px; color: #5c4a1a; line-height: 1.8; margin-bottom: 7px; }
+    .note li:last-child { margin-bottom: 0; }
+
+    /* ── CTA ── */
+    .cta {
+      background: #2d6a2d; color: #fff;
+      text-align: center; padding: 60px 24px;
+    }
+    .cta h2 { font-size: 26px; font-weight: 700; margin-bottom: 12px; }
+    .cta p  { font-size: 15px; opacity: 0.88; margin-bottom: 28px; line-height: 1.8; }
+
+    .btn-white {
+      background: #fff; color: #2d6a2d;
+      padding: 13px 32px; border-radius: 8px;
+      font-size: 15px; font-weight: 700;
+      text-decoration: none; display: inline-block;
+    }
+
+    footer {
+      background: #1a1a1a; color: #999;
+      text-align: center; padding: 26px 24px;
+      font-size: 13px; line-height: 1.8;
+    }
+
+    @media (max-width: 600px) {
+      .hero h1 { font-size: 29px; }
+      nav { padding: 14px 18px; }
+      nav a { margin-left: 14px; font-size: 13px; }
+      .stats { gap: 28px; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="logo"><span class="logo-dot"></span>RubberCarbon</div>
+  <div>
+    <a href="#method">วิธีการศึกษา</a>
+    <a href="#result">ผลการศึกษา</a>
+    <a href="select.html" class="btn">เปิดแผนที่</a>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="tag">งานวิจัยระดับปริญญาตรี · ภูมิสารสนเทศ</div>
+  <h1>ประเมินการกักเก็บคาร์บอน<br><b>สวนยางพารา จังหวัดระยอง</b></h1>
+  <p>
+    เลือกพื้นที่บนแผนที่เพื่อดูว่าบริเวณนั้นมีสวนยางพาราอยู่เท่าใด
+    และกักเก็บคาร์บอนไว้ประมาณเท่าใด ประเมินจากภาพดาวเทียม Sentinel-2
+    ด้วยการจำแนกเชิงวัตถุร่วมกับดัชนีความต่างพืชพรรณ
+  </p>
+  <div class="hero-btns">
+    <a href="select.html" class="btn-green">เปิดแผนที่</a>
+    <a href="#method" class="btn-outline">ดูวิธีการศึกษา</a>
+  </div>
+</section>
+
+<div class="stats">
+  <div class="stat">
+    <div class="stat-num">1,583</div>
+    <div class="stat-label">ตร.กม. พื้นที่ศึกษา</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num">10 ม.</div>
+    <div class="stat-label">ความละเอียดภาพดาวเทียม</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num">7</div>
+    <div class="stat-label">ประเภทการใช้ที่ดิน</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num">114</div>
+    <div class="stat-label">ภาพที่ใช้วิเคราะห์</div>
+  </div>
+</div>
+
+<section class="section" id="method">
+  <h2>วิธีการศึกษา</h2>
+  <p class="lead">
+    ใช้ภาพดาวเทียมสองช่วงฤดูเพื่อคำนวณผลต่างของดัชนีความต่างพืชพรรณ
+    ซึ่งช่วยแยกยางพาราที่ผลัดใบในฤดูแล้ง
+    ออกจากปาล์มน้ำมันและไม้ผลที่มีเรือนยอดเขียวตลอดปี
+  </p>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div>
+        <h3>เตรียมภาพดาวเทียม</h3>
+        <p>
+          ภาพ Sentinel-2 ระดับค่าการสะท้อนพื้นผิว ผ่าน Google Earth Engine
+          ฤดูฝน 55 ภาพ และฤดูแล้ง 59 ภาพ คัดกรองเมฆสองระดับ
+          ทั้งระดับฉากภาพและระดับจุดภาพด้วย Scene Classification Layer
+          แล้วสังเคราะห์เป็นภาพตัวแทนด้วยค่ามัธยฐาน
+        </p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">2</div>
+      <div>
+        <h3>จำแนกการใช้ประโยชน์ที่ดิน 7 ประเภท</h3>
+        <p>
+          แบ่งภาพเป็นวัตถุด้วยอัลกอริทึม SNIC แล้วจำแนกด้วย Random Forest
+          จากตัวแปร 20 ตัว ได้แก่ ค่าการสะท้อนสองฤดู ดัชนีพืชพรรณและผลต่างระหว่างฤดู
+          ค่าจากการวิเคราะห์เนื้อภาพ และข้อมูลภูมิประเทศ
+        </p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">3</div>
+      <div>
+        <h3>ตรวจสอบความถูกต้องและปรับแก้พื้นที่</h3>
+        <p>
+          สุ่มจุดตรวจสอบอิสระแบบชั้นภูมิ 400 จุด แปลตีความจากภาพความละเอียดสูง
+          แล้วปรับแก้ความลำเอียงของการประมาณพื้นที่ตามวิธีของ Olofsson และคณะ (2014)
+          พร้อมรายงานช่วงความเชื่อมั่น
+        </p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">4</div>
+      <div>
+        <h3>ประเมินปริมาณคาร์บอน</h3>
+        <p>
+          คำนวณดัชนีความต่างพืชพรรณจากภาพเดือนมกราคม พ.ศ. 2568
+          ซึ่งเป็นช่วงที่ต้นยางพาราเริ่มทิ้งใบบางส่วน
+          แล้วเปรียบเทียบแบบจำลองสี่รูปแบบ ได้แก่ เชิงเส้น เอกซ์โพเนนเชียล
+          ลอการิทึม และกำลังสอง เพื่อคัดเลือกแบบจำลองที่เหมาะสมที่สุด
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="result">
+  <h2>ผลการศึกษา</h2>
+  <p class="lead">
+    ผลการจำแนกตรวจสอบด้วยชุดข้อมูลทดสอบที่แบ่งแยกจากชุดสร้างแบบจำลอง
+    และปรับแก้ความลำเอียงของพื้นที่ด้วยจุดตรวจสอบอิสระ
+  </p>
+
+  <div class="result-wrap">
+    <table>
+      <thead>
+        <tr><th>รายการ</th><th style="text-align:right">ค่าที่ได้</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>ความถูกต้องโดยรวมของการจำแนก</td>
+          <td class="num">87.91%</td>
+        </tr>
+        <tr>
+          <td>ค่าสัมประสิทธิ์แคปปา</td>
+          <td class="num">0.859</td>
+        </tr>
+        <tr>
+          <td>ความถูกต้องของผู้ใช้ ประเภทสวนยางพารา</td>
+          <td class="num">97.37%</td>
+        </tr>
+        <tr>
+          <td>ความถูกต้องของผู้ผลิต ประเภทสวนยางพารา</td>
+          <td class="num">92.50%</td>
+        </tr>
+        <tr class="hl">
+          <td>พื้นที่สวนยางพารา (ปรับแก้ความลำเอียงแล้ว)</td>
+          <td class="num">412 ± 70 ตร.กม.</td>
+        </tr>
+        <tr class="hl">
+          <td>คิดเป็นพื้นที่</td>
+          <td class="num">257,556 ± 43,919 ไร่</td>
+        </tr>
+        <tr>
+          <td>ปริมาณคาร์บอนเฉลี่ย</td>
+          <td class="num">64.39 ตันคาร์บอน/เฮกตาร์</td>
+        </tr>
+        <tr class="hl">
+          <td>ปริมาณคาร์บอนสะสมรวม</td>
+          <td class="num">2.65 ล้านตันคาร์บอน</td>
+        </tr>
+        <tr>
+          <td>เทียบเท่าคาร์บอนไดออกไซด์</td>
+          <td class="num">9.74 ล้านตัน CO₂e</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="note">
+    <h3>ข้อจำกัดที่ควรทราบก่อนใช้ข้อมูล</h3>
+    <ul>
+      <li>
+        ค่าที่แสดงเป็นค่าประมาณทางสถิติพร้อมช่วงความเชื่อมั่นร้อยละ 95
+        มิใช่การวัดพื้นที่รายแปลง จึงไม่ควรนำไปใช้อ้างอิงกรรมสิทธิ์ที่ดิน
+        หรือยื่นขอรับรองคาร์บอนเครดิต
+      </li>
+      <li>
+        การประเมินครอบคลุมเฉพาะมวลชีวภาพเหนือพื้นดิน
+        ไม่รวมคาร์บอนในดิน รากไม้ และซากพืช
+      </li>
+      <li>
+        ค่าดัชนีความต่างพืชพรรณในพื้นที่สวนยางพาราอยู่ในช่วงแคบ
+        สะท้อนภาวะอิ่มตัวของดัชนีในพื้นที่ที่มีเรือนยอดปกคลุมหนาแน่น
+        จึงไม่สามารถใช้จำแนกชั้นอายุสวนยางพาราได้
+      </li>
+      <li>
+        ขอบเขตสวนยางพาราที่จำแนกได้เป็นสวนยางพาราในช่วงที่เรือนยอดปกคลุมเต็มพื้นที่แล้วเป็นหลัก
+        สวนยางพาราในช่วงก่อนให้ผลผลิตอาจถูกจำแนกเป็นประเภทอื่น
+      </li>
+      <li>
+        แบบจำลองที่นำมาประยุกต์ใช้พัฒนาจากสวนยางพาราในประเทศอินโดนีเซีย
+        มิได้พัฒนาขึ้นจากข้อมูลภาคสนามในพื้นที่ศึกษาโดยตรง
+      </li>
+      <li>
+        ความคลาดเคลื่อนเชิงตำแหน่งของภาพดาวเทียมอยู่ในระดับประมาณ 10 ถึง 12 เมตร
+        บริเวณขอบแปลงจึงมีความไม่แน่นอนสูงกว่าบริเวณกลางแปลง
+      </li>
+    </ul>
+  </div>
+</section>
+
+<section class="cta">
+  <h2>ลองเลือกพื้นที่ที่สนใจ</h2>
+  <p>วาดขอบเขตบนแผนที่เพื่อดูพื้นที่สวนยางพาราและปริมาณคาร์บอนที่ประเมินได้</p>
+  <a href="select.html" class="btn-white">เปิดแผนที่</a>
+</section>
+
+<footer>
+  <p>
+    งานวิจัยระดับปริญญาตรี · การประเมินคาร์บอนของยางพาราโดยใช้ค่าดัชนีพืชพรรณ
+    อำเภอบ้านค่าย แกลง และวังจันทร์ จังหวัดระยอง
+  </p>
+  <p>ข้อมูลภาพดาวเทียม Copernicus Sentinel-2 ประมวลผลผ่าน Google Earth Engine</p>
+</footer>
+
+</body>
+</html>

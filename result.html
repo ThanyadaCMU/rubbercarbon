@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ผลการประเมิน - RubberCarbon</title>
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Noto Sans Thai', sans-serif;
+      background: #f7f5f0;
+      color: #1a1a1a;
+      line-height: 1.6;
+    }
+
+    /* ── แถบนำทาง ── */
+    nav {
+      background: #fff;
+      border-bottom: 1px solid #e5e5e5;
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .nav-left { display: flex; align-items: center; gap: 12px; }
+
+    .logo {
+      font-size: 18px; font-weight: 700;
+      color: #2d6a2d; text-decoration: none;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .logo-dot { width: 9px; height: 9px; background: #4caf50; border-radius: 50%; }
+    .page-title { font-size: 14px; color: #888; }
+
+    .btn-back {
+      background: #fff; color: #2d6a2d;
+      border: 1.5px solid #2d6a2d;
+      padding: 8px 18px; border-radius: 8px;
+      font-size: 13px; font-weight: 600;
+      text-decoration: none;
+      font-family: inherit; cursor: pointer;
+    }
+    .btn-back:hover { background: #e8f5e9; }
+
+    /* ── เนื้อหา ── */
+    .wrap { max-width: 920px; margin: 0 auto; padding: 28px 20px 60px; }
+
+    .card {
+      background: #fff;
+      border: 1px solid #e5e5e5;
+      border-radius: 12px;
+      padding: 22px 24px;
+      margin-bottom: 20px;
+    }
+
+    .card h2 {
+      font-size: 17px; font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .card h3 {
+      font-size: 15px; font-weight: 700;
+      margin-bottom: 14px;
+    }
+
+    .sub { font-size: 13px; color: #888; }
+
+    /* ── การ์ดตัวเลข ── */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    .stat {
+      background: #fff;
+      border: 1px solid #e5e5e5;
+      border-radius: 12px;
+      padding: 18px 20px;
+      border-top: 3px solid #cfcfcf;
+    }
+    .stat.a { border-top-color: #6c8ebf; }
+    .stat.b { border-top-color: #2d6a2d; }
+    .stat.c { border-top-color: #1b5e20; }
+    .stat.d { border-top-color: #b45309; }
+
+    .stat-label { font-size: 12px; color: #888; margin-bottom: 4px; }
+    .stat-num   { font-size: 26px; font-weight: 800; line-height: 1.2; }
+    .stat.a .stat-num { color: #35507a; }
+    .stat.b .stat-num { color: #2d6a2d; }
+    .stat.c .stat-num { color: #1b5e20; }
+    .stat.d .stat-num { color: #b45309; }
+    .stat-unit  { font-size: 12px; color: #888; margin-top: 3px; }
+
+    /* ── ตาราง ── */
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th, td { padding: 11px 6px; text-align: left; border-bottom: 1px solid #f0f0f0; }
+    th { color: #888; font-weight: 400; }
+    td { text-align: right; font-weight: 700; }
+    tr:last-child th, tr:last-child td { border-bottom: none; }
+    tr.hl td, tr.hl th { background: #f4f9f4; }
+
+    /* ── แผนที่ ── */
+    #miniMap { height: 320px; border-radius: 10px; }
+
+    /* ── สมการ ── */
+    .eq {
+      background: #f4f9f4;
+      border-left: 3px solid #2d6a2d;
+      border-radius: 6px;
+      padding: 12px 16px;
+      margin-bottom: 12px;
+    }
+    .eq-name { font-size: 13px; font-weight: 700; margin-bottom: 5px; }
+    .eq-body {
+      font-family: 'Consolas', 'Courier New', monospace;
+      font-size: 13px; color: #1b5e20;
+    }
+    .eq-src { font-size: 11px; color: #999; margin-top: 5px; }
+
+    /* ── ข้อจำกัด ── */
+    .note-box {
+      background: #fffbea;
+      border: 1px solid #f0e2b0;
+      border-left: 4px solid #d4a017;
+      border-radius: 8px;
+      padding: 18px 22px;
+    }
+    .note-box h3 { color: #7a5c00; }
+    .note-box ul { margin: 0; padding-left: 20px; }
+    .note-box li { font-size: 13px; color: #5c4a1a; line-height: 1.8; margin-bottom: 7px; }
+    .note-box li:last-child { margin-bottom: 0; }
+
+    /* ── ไม่มีข้อมูล ── */
+    .empty { text-align: center; padding: 70px 20px; }
+    .empty h2 { font-size: 19px; margin-bottom: 10px; }
+    .empty p  { color: #888; margin-bottom: 22px; }
+    .btn-green {
+      background: #2d6a2d; color: #fff;
+      border: none; padding: 12px 28px;
+      border-radius: 8px; font-size: 15px;
+      font-weight: 700; text-decoration: none;
+      display: inline-block; cursor: pointer;
+      font-family: inherit;
+    }
+
+    footer {
+      background: #1a1a1a; color: #999;
+      text-align: center; padding: 22px;
+      font-size: 12px; line-height: 1.8;
+    }
+
+    @media print {
+      nav, .btn-back, footer { display: none; }
+      .card, .stat { break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-left">
+    <a href="index.html" class="logo"><div class="logo-dot"></div>RubberCarbon</a>
+    <span class="page-title">/ ผลการประเมิน</span>
+  </div>
+  <a href="select.html" class="btn-back">เลือกพื้นที่ใหม่</a>
+</nav>
+
+<div class="wrap" id="content"></div>
+
+<footer>
+  <p>งานวิจัยระดับปริญญาตรี · การประเมินคาร์บอนของยางพาราโดยใช้ค่าดัชนีพืชพรรณ</p>
+  <p>อำเภอบ้านค่าย แกลง และวังจันทร์ จังหวัดระยอง</p>
+</footer>
+
+<script>
+  const raw = localStorage.getItem('carbonResult');
+
+  if (!raw) {
+    document.getElementById('content').innerHTML = `
+      <div class="card empty">
+        <h2>ยังไม่มีผลการประเมิน</h2>
+        <p>กรุณาเลือกพื้นที่บนแผนที่ก่อน</p>
+        <a href="select.html" class="btn-green">ไปหน้าเลือกพื้นที่</a>
+      </div>`;
+  } else {
+    const d = JSON.parse(raw);
+
+    const fmt = (n, dec = 1) =>
+      Number(n).toLocaleString('th-TH', {
+        minimumFractionDigits: dec, maximumFractionDigits: dec
+      });
+
+    const when = new Date(d.analyzedAt);
+    const dateStr = when.toLocaleDateString('th-TH', {
+      year: 'numeric', month: 'long', day: 'numeric'
+    });
+
+    document.getElementById('content').innerHTML = `
+      <div class="card">
+        <h2>${d.farmName}</h2>
+        <p class="sub">
+          ประเมินเมื่อ ${dateStr} ·
+          ภาพ Sentinel-2 เดือนมกราคม พ.ศ. 2568 ·
+          พิกัดศูนย์กลาง ${d.centerLat.toFixed(4)}, ${d.centerLng.toFixed(4)}
+        </p>
+      </div>
+
+      <div class="stats">
+        <div class="stat a">
+          <div class="stat-label">พื้นที่ที่เลือก</div>
+          <div class="stat-num">${fmt(d.drawnRai)}</div>
+          <div class="stat-unit">ไร่</div>
+        </div>
+        <div class="stat b">
+          <div class="stat-label">พื้นที่สวนยางพารา</div>
+          <div class="stat-num">${fmt(d.rubberRai)}</div>
+          <div class="stat-unit">ไร่ (${fmt(d.rubberPercent)}% ของพื้นที่ที่เลือก)</div>
+        </div>
+        <div class="stat c">
+          <div class="stat-label">ปริมาณคาร์บอนสะสม</div>
+          <div class="stat-num">${fmt(d.carbonTon)}</div>
+          <div class="stat-unit">ตันคาร์บอน</div>
+        </div>
+        <div class="stat d">
+          <div class="stat-label">เทียบเท่าคาร์บอนไดออกไซด์</div>
+          <div class="stat-num">${fmt(d.co2eq)}</div>
+          <div class="stat-unit">ตัน CO₂ เทียบเท่า</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>รายละเอียดผลการประเมิน</h3>
+        <table>
+          <tr>
+            <th>พื้นที่ที่เลือกทั้งหมด</th>
+            <td>${fmt(d.drawnRai)} ไร่</td>
+          </tr>
+          <tr>
+            <th>พื้นที่ที่จำแนกได้ว่าเป็นสวนยางพารา</th>
+            <td>${fmt(d.rubberRai)} ไร่</td>
+          </tr>
+          <tr>
+            <th>สัดส่วนสวนยางพารา</th>
+            <td>${fmt(d.rubberPercent)}%</td>
+          </tr>
+          <tr>
+            <th>ปริมาณคาร์บอนเฉลี่ยต่อไร่</th>
+            <td>${fmt(d.carbonPerRai, 2)} ตันคาร์บอน/ไร่</td>
+          </tr>
+          <tr class="hl">
+            <th>ปริมาณคาร์บอนสะสม</th>
+            <td>${fmt(d.carbonTon)} ตันคาร์บอน</td>
+          </tr>
+          <tr class="hl">
+            <th>ช่วงความเชื่อมั่นร้อยละ 95</th>
+            <td>${fmt(d.carbonLower)} – ${fmt(d.carbonUpper)} ตันคาร์บอน</td>
+          </tr>
+          <tr>
+            <th>เทียบเท่าคาร์บอนไดออกไซด์</th>
+            <td>${fmt(d.co2eq)} ตัน CO₂e</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="card">
+        <h3>ตำแหน่งพื้นที่ที่เลือก</h3>
+        <div id="miniMap"></div>
+      </div>
+
+      <div class="card">
+        <h3>วิธีการคำนวณ</h3>
+
+        <div class="eq">
+          <div class="eq-name">1. ดัชนีความต่างพืชพรรณ</div>
+          <div class="eq-body">NDVI = (NIR − Red) / (NIR + Red)</div>
+          <div class="eq-src">คำนวณจากภาพ Sentinel-2 เดือนมกราคม พ.ศ. 2568</div>
+        </div>
+
+        <div class="eq">
+          <div class="eq-name">2. ปริมาณคาร์บอนเหนือพื้นดิน</div>
+          <div class="eq-body">ACS = 0.0356 × e^(4.1951 × NDVI)</div>
+          <div class="eq-src">
+            Pratama &amp; Danoedoro (2020) รูปแบบเอกซ์โพเนนเชียล R² = 0.675
+            คัดเลือกจากการเปรียบเทียบสี่รูปแบบสมการ
+          </div>
+        </div>
+
+        <div class="eq">
+          <div class="eq-name">3. คาร์บอนไดออกไซด์เทียบเท่า</div>
+          <div class="eq-body">CO₂e = ACS × 3.67</div>
+          <div class="eq-src">อัตราส่วนมวลโมเลกุลของคาร์บอนไดออกไซด์ต่อคาร์บอน</div>
+        </div>
+
+        <p class="sub" style="margin-top:12px">
+          ขอบเขตสวนยางพาราได้จากการจำแนกประเภทการใช้ประโยชน์ที่ดินด้วยการวิเคราะห์ภาพเชิงวัตถุ
+          ร่วมกับอัลกอริทึม Random Forest ได้ค่าความถูกต้องโดยรวมร้อยละ 87.91
+          และค่าความถูกต้องของผู้ใช้ของประเภทสวนยางพาราร้อยละ 97.37
+        </p>
+      </div>
+
+      <div class="note-box">
+        <h3>ข้อจำกัดที่ควรทราบ</h3>
+        <ul>
+          <li>
+            ค่าที่แสดงเป็นค่าประมาณทางสถิติพร้อมช่วงความเชื่อมั่น
+            ไม่ควรนำไปใช้อ้างอิงกรรมสิทธิ์ที่ดิน หรือยื่นขอรับรองคาร์บอนเครดิต
+          </li>
+          <li>
+            ปริมาณคาร์บอนต่อหน่วยพื้นที่เป็นค่าเฉลี่ยของสวนยางพาราทั้งพื้นที่ศึกษา
+            มิได้สะท้อนความแปรปรวนภายในบริเวณที่เลือก
+            โดยค่ารายจุดภาพมีช่วงตั้งแต่ประมาณ 32 ถึง 95 ตันคาร์บอนต่อเฮกตาร์
+          </li>
+          <li>
+            การประเมินครอบคลุมเฉพาะมวลชีวภาพเหนือพื้นดิน
+            ไม่รวมคาร์บอนในดิน รากไม้ และซากพืช
+          </li>
+          <li>
+            ขอบเขตสวนยางพาราที่แสดงเป็นสวนยางพาราในช่วงที่เรือนยอดปกคลุมเต็มพื้นที่แล้วเป็นหลัก
+            สวนยางพาราในช่วงก่อนให้ผลผลิตอาจไม่ปรากฏในขอบเขตนี้
+          </li>
+          <li>
+            ความคลาดเคลื่อนเชิงตำแหน่งของภาพดาวเทียมอยู่ในระดับประมาณ 10 ถึง 12 เมตร
+            บริเวณขอบแปลงจึงมีความไม่แน่นอนสูงกว่าบริเวณกลางแปลง
+          </li>
+          <li>
+            แบบจำลองที่ใช้พัฒนาจากสวนยางพาราในประเทศอินโดนีเซีย
+            มิได้พัฒนาขึ้นจากข้อมูลภาคสนามในพื้นที่ศึกษาโดยตรง
+          </li>
+        </ul>
+      </div>
+    `;
+
+    // แผนที่แสดงตำแหน่ง
+    const mini = L.map('miniMap').setView([d.centerLat, d.centerLng], 15);
+
+    L.tileLayer(
+      'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+      { attribution: '© Esri' }
+    ).addTo(mini);
+
+    const poly = L.polygon(d.coords, {
+      color: '#fad13c', fillColor: '#e0d4a6',
+      fillOpacity: 0.3, weight: 2.5
+    }).addTo(mini);
+
+    mini.fitBounds(poly.getBounds(), { padding: [30, 30] });
+  }
+</script>
+
+</body>
+</html>

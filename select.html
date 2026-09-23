@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>เลือกพื้นที่ศึกษา - RubberCarbon</title>
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
+  <script src="rayong_districts.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Noto Sans Thai', sans-serif;
+      background: #f7f5f0;
+      color: #1a1a1a;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    nav {
+      background: #fff;
+      border-bottom: 1px solid #e5e5e5;
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+
+    .logo {
+      font-size: 18px; font-weight: 700;
+      color: #2d6a2d; text-decoration: none;
+      display: flex; align-items: center; gap: 6px;
+    }
+
+    .logo-dot { width: 9px; height: 9px; background: #4caf50; border-radius: 50%; }
+    .page-title { font-size: 14px; color: #888; }
+
+    .main { display: flex; flex: 1; overflow: hidden; }
+    #map { flex: 1; }
+
+    .panel {
+      width: 340px;
+      background: #fff;
+      border-left: 1px solid #e5e5e5;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      flex-shrink: 0;
+    }
+
+    .panel-section {
+      padding: 18px 20px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .panel-section h3 {
+      font-size: 14px; font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    /* DRAW INSTRUCTION */
+    .draw-note {
+      background: #e8f5e9;
+      border: 1px solid #a5d6a7;
+      border-radius: 8px;
+      padding: 12px 14px;
+      font-size: 12px;
+      color: #1b5e20;
+      line-height: 1.7;
+      margin-bottom: 14px;
+    }
+
+    .draw-note strong { font-size: 13px; display: block; margin-bottom: 4px; }
+
+    .draw-steps {
+      list-style: none;
+      counter-reset: steps;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .draw-steps li {
+      counter-increment: steps;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      font-size: 12px;
+      color: #333;
+    }
+
+    .draw-steps li::before {
+      content: counter(steps);
+      background: #2d6a2d;
+      color: #fff;
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      font-size: 10px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    /* DRAW BUTTON */
+    .btn-draw {
+      width: 100%;
+      background: #1565c0;
+      color: #fff;
+      border: none;
+      padding: 11px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.2s;
+      margin-bottom: 8px;
+    }
+
+    .btn-draw:hover { background: #0d47a1; }
+
+    .btn-clear {
+      width: 100%;
+      background: #fff;
+      color: #d32f2f;
+      border: 1.5px solid #d32f2f;
+      padding: 9px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.2s;
+      display: none;
+    }
+
+    .btn-clear:hover { background: #ffebee; }
+    .btn-clear.show { display: block; }
+
+    /* FARM NAME */
+    .farm-name-input {
+      width: 100%;
+      padding: 9px 12px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 13px;
+      font-family: inherit;
+      margin-top: 6px;
+    }
+
+    .farm-name-input:focus {
+      outline: none;
+      border-color: #2d6a2d;
+    }
+
+    /* INFO BOX */
+    .info-box {
+      background: #f7f5f0;
+      border-radius: 8px;
+      padding: 12px 14px;
+    }
+
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 5px 0;
+      border-bottom: 1px solid #ececec;
+      font-size: 13px;
+    }
+
+    .info-row:last-child { border-bottom: none; }
+    .info-label { color: #888; }
+    .info-val   { font-weight: 700; }
+    .info-val.green { color: #2d6a2d; }
+
+    /* STATUS */
+    .status {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 12px; font-weight: 600;
+      padding: 4px 10px; border-radius: 20px;
+    }
+    .status.waiting { background: #f5f5f5; color: #888; }
+    .status.ready   { background: #e8f5e9; color: #2d6a2d; }
+    .status-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+
+    /* YEAR CHECKBOXES */
+    .year-checks { display: flex; gap: 10px; }
+
+    .year-check {
+      flex: 1;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      background: #f7f5f0;
+      border: 1.5px solid #ddd;
+      border-radius: 8px;
+      padding: 10px 8px;
+      cursor: pointer;
+      font-size: 13px; font-weight: 700;
+      transition: all 0.2s;
+      user-select: none;
+    }
+
+    .year-check input { display: none; }
+
+    .year-check.checked {
+      background: #e8f5e9;
+      border-color: #2d6a2d;
+      color: #2d6a2d;
+    }
+
+    .year-sub {
+      font-size: 10px; font-weight: 400;
+      color: #888; display: block;
+      text-align: center; margin-top: 2px;
+    }
+
+    .year-check.checked .year-sub { color: #4caf50; }
+
+    /* BUTTONS */
+    .btn-green {
+      width: 100%;
+      background: #2d6a2d; color: #fff;
+      border: none; padding: 13px;
+      border-radius: 8px; font-size: 15px;
+      font-weight: 700; cursor: pointer;
+      font-family: inherit; transition: background 0.2s;
+    }
+    .btn-green:hover { background: #235523; }
+    .btn-green:disabled { background: #ccc; cursor: not-allowed; }
+
+    .note { font-size: 12px; color: #aaa; line-height: 1.6; margin-top: 8px; }
+
+    /* LOADING */
+    .loading-box { display: none; text-align: center; padding: 20px; }
+    .loading-box.show { display: block; }
+
+    .spinner {
+      width: 36px; height: 36px;
+      border: 3px solid #e8f5e9;
+      border-top-color: #2d6a2d;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 12px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-box p { font-size: 13px; color: #555; line-height: 1.8; }
+
+    /* MAP TOOLTIP */
+    .leaflet-tooltip {
+      font-family: 'Noto Sans Thai', sans-serif;
+      font-size: 13px; font-weight: 700;
+    }
+
+    /* ซ่อน leaflet.draw toolbar ที่ไม่ต้องการ */
+    .leaflet-draw-toolbar { display: none !important; }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="logo">
+    <div class="logo-dot"></div>RubberCarbon
+  </a>
+  <span class="page-title">/ เลือกพื้นที่ศึกษา</span>
+</nav>
+
+<div class="main">
+
+  <!-- MAP -->
+  <div id="map"></div>
+
+  <!-- PANEL -->
+  <div class="panel">
+
+    <!-- สถานะการโหลดข้อมูล -->
+    <div class="panel-section" id="dataStatusSection">
+      <div class="draw-note" id="dataStatus" style="background:#fff8e1;border-color:#ffe082;color:#795548">
+        <strong>กำลังโหลดข้อมูล</strong>
+        กำลังโหลดขอบเขตสวนยางพารา กรุณารอสักครู่
+      </div>
+    </div>
+
+    <!-- วาด Polygon -->
+    <div class="panel-section">
+      <h3>✏️ วาดพื้นที่ที่สนใจ</h3>
+
+      <div class="draw-note">
+        <strong>วิธีใช้งาน</strong>
+        <ul class="draw-steps">
+          <li>กด "เริ่มวาดพื้นที่" แล้วคลิกบนแผนที่เพื่อวางจุด</li>
+          <li>วาดล้อมรอบบริเวณที่ต้องการทราบปริมาณคาร์บอน</li>
+          <li>ดับเบิลคลิกหรือคลิกจุดแรกเพื่อปิดรูปหลายเหลี่ยม</li>
+          <li>ตั้งชื่อพื้นที่แล้วกดคำนวณ</li>
+        </ul>
+      </div>
+
+      <button class="btn-draw" id="drawBtn" onclick="startDrawing()" disabled>
+        ✏️ เริ่มวาดพื้นที่
+      </button>
+      <button class="btn-clear" id="clearBtn" onclick="clearPolygon()">
+        🗑 ลบและวาดใหม่
+      </button>
+    </div>
+
+    <!-- แสดงขอบเขตสวนยาง -->
+    <div class="panel-section">
+      <h3>🗺 ชั้นข้อมูล</h3>
+      <label class="year-check checked" id="rubberToggle" style="width:100%">
+        <input type="checkbox" id="showRubber" checked/>
+        <div>แสดงขอบเขตสวนยางพารา
+          <span class="year-sub">จากการจำแนกภาพดาวเทียม</span>
+        </div>
+      </label>
+    </div>
+
+    <!-- ชื่อพื้นที่ -->
+    <div class="panel-section" id="nameSection" style="display:none">
+      <h3>📝 ชื่อพื้นที่</h3>
+      <input type="text" class="farm-name-input" id="farmName"
+             placeholder="เช่น สวนยางพารานายสมชาย" maxlength="50"/>
+    </div>
+
+    <!-- ข้อมูลพื้นที่ -->
+    <div class="panel-section">
+      <h3>ข้อมูลพื้นที่ที่เลือก</h3>
+      <div class="info-box">
+        <div class="info-row">
+          <span class="info-label">สถานะ</span>
+          <span class="status waiting" id="statusBadge">
+            <span class="status-dot"></span>รอวาดพื้นที่
+          </span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">พื้นที่ที่วาด (ไร่)</span>
+          <span class="info-val" id="areaRai">—</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">พื้นที่สวนยางพารา (ไร่)</span>
+          <span class="info-val green" id="rubberRai">—</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">สัดส่วนสวนยางพารา</span>
+          <span class="info-val" id="rubberPct">—</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">จำนวนจุด</span>
+          <span class="info-val" id="pointCount">—</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">พิกัดศูนย์กลาง</span>
+          <span class="info-val" id="areaCoord">—</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ปุ่มคำนวณ -->
+    <div class="panel-section">
+      <button type="button" class="btn-green" id="analyzeBtn" onclick="startAnalysis()">
+        คำนวณปริมาณคาร์บอน
+      </button>
+      <p class="note">
+        คำนวณจากขอบเขตสวนยางพาราที่จำแนกจากภาพ Sentinel-2 ร่วมกับ
+        แบบจำลองความสัมพันธ์ระหว่างดัชนีความต่างพืชพรรณกับปริมาณคาร์บอน
+        ของ Pratama &amp; Danoedoro (2020)
+      </p>
+    </div>
+
+    <!-- Loading -->
+    <div class="panel-section loading-box" id="loadingBox">
+      <div class="spinner"></div>
+      <p id="loadingText">กำลังคำนวณ...</p>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // =====================================================
+  // ค่าคงที่จากผลการศึกษา
+  // =====================================================
+  // ปริมาณคาร์บอนต่อไร่ ได้จากแบบจำลองเอกซ์โพเนนเชียลของ
+  // Pratama & Danoedoro (2020) : ACS = 0.0356 * e^(4.1951 * NDVI)
+  // ค่าเฉลี่ยในพื้นที่ศึกษา 64.39 tC/ha = 10.30 tC/ไร่
+  //
+  // ปรับชดเชยด้วยอัตราส่วนระหว่างพื้นที่ที่ปรับแก้ความลำเอียงแล้ว (412.09 ตร.กม.)
+  // กับพื้นที่ขอบเขตที่แสดงบนแผนที่ (290.49 ตร.กม.) = 1.4186
+  // 10.30 x 1.4186 = 14.61 tC/ไร่
+  const CARBON_PER_RAI = 14.61;
+  const CI_RATIO       = 0.17;   // ความไม่แน่นอน +/- 17% จากการปรับแก้พื้นที่
+  const CO2_FACTOR     = 3.67;   // อัตราส่วนมวลโมเลกุล CO2 ต่อ C
+
+  // =====================================================
+  // แผนที่
+  // =====================================================
+  const RAYONG_BOUNDS = L.latLngBounds([12.55, 101.10], [13.20, 101.90]);
+
+  const map = L.map('map', {
+    maxBounds: RAYONG_BOUNDS,
+    maxBoundsViscosity: 0.9
+  }).setView([12.8200, 101.5500], 10);
+
+  L.tileLayer(
+    'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+    { attribution: '© Esri' }
+  ).addTo(map);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    opacity: 0.25, attribution: '© OSM'
+  }).addTo(map);
+
+  // ขอบเขตอำเภอ
+  L.geoJSON(RAYONG_DISTRICTS, {
+    style: function (feature) {
+      const isStudy = feature.properties.is_study;
+      return {
+        color: isStudy ? '#d32f2f' : '#ff8f00',
+        weight: isStudy ? 2.5 : 1.5,
+        fillColor: isStudy ? '#d32f2f' : '#ff8f00',
+        fillOpacity: isStudy ? 0.08 : 0.03,
+        dashArray: isStudy ? null : '5 4'
+      };
+    },
+    onEachFeature: function (feature, layer) {
+      const p = feature.properties;
+      const label = p.is_study ? `อ.${p.amp_th} (พื้นที่ศึกษา)` : `อ.${p.amp_th}`;
+      layer.bindTooltip(label, { direction: 'top', sticky: true });
+    }
+  }).addTo(map);
+
+  // =====================================================
+  // โหลดขอบเขตสวนยางพารา
+  // =====================================================
+  let RUBBER_DATA  = null;
+  let rubberLayer  = null;
+
+  fetch('rubber_boundary_30m.geojson')
+    .then(r => {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    })
+    .then(data => {
+      RUBBER_DATA = data;
+
+      rubberLayer = L.geoJSON(data, {
+        style: { color: '#2d6a2d', weight: 0.5,
+                 fillColor: '#4caf50', fillOpacity: 0.45 }
+      }).addTo(map);
+
+      document.getElementById('dataStatus').innerHTML =
+        '<strong>พร้อมใช้งาน</strong>โหลดขอบเขตสวนยางพารา ' +
+        data.features.length.toLocaleString() + ' รูปหลายเหลี่ยม';
+      document.getElementById('dataStatus').style.background   = '#e8f5e9';
+      document.getElementById('dataStatus').style.borderColor  = '#a5d6a7';
+      document.getElementById('dataStatus').style.color        = '#1b5e20';
+      document.getElementById('drawBtn').disabled = false;
+    })
+    .catch(err => {
+      document.getElementById('dataStatus').innerHTML =
+        '<strong>โหลดข้อมูลไม่สำเร็จ</strong>' + err.message +
+        '<br>ต้องเปิดผ่านเว็บเซิร์ฟเวอร์ ไม่ใช่เปิดไฟล์โดยตรง';
+      document.getElementById('dataStatus').style.background  = '#ffebee';
+      document.getElementById('dataStatus').style.borderColor = '#ef9a9a';
+      document.getElementById('dataStatus').style.color       = '#b71c1c';
+    });
+
+  document.getElementById('showRubber').addEventListener('change', function () {
+    if (!rubberLayer) return;
+    if (this.checked) {
+      rubberLayer.addTo(map);
+      document.getElementById('rubberToggle').classList.add('checked');
+    } else {
+      map.removeLayer(rubberLayer);
+      document.getElementById('rubberToggle').classList.remove('checked');
+    }
+  });
+
+  // =====================================================
+  // เครื่องมือวาด
+  // =====================================================
+  const drawnItems = new L.FeatureGroup().addTo(map);
+
+  const drawControl = new L.Control.Draw({
+    draw: {
+      polygon: {
+        allowIntersection: false,
+        showArea: true,
+        shapeOptions: { color: '#fad13c', fillColor: '#e0d4a6',
+                        fillOpacity: 0.25, weight: 2 }
+      },
+      rectangle: false, circle: false,
+      circlemarker: false, marker: false, polyline: false
+    },
+    edit: { featureGroup: drawnItems, edit: true, remove: false }
+  });
+  map.addControl(drawControl);
+
+  let currentPolygon = null;
+  let lastResult     = null;
+
+  function startDrawing() {
+    if (currentPolygon) clearPolygon();
+    new L.Draw.Polygon(map, drawControl.options.draw.polygon).enable();
+  }
+
+  map.on('draw:created', function (e) {
+    currentPolygon = e.layer;
+    drawnItems.addLayer(currentPolygon);
+    analyzeArea();
+    document.getElementById('clearBtn').classList.add('show');
+    document.getElementById('nameSection').style.display = 'block';
+  });
+
+  map.on('draw:edited', function () { analyzeArea(); });
+
+  function clearPolygon() {
+    drawnItems.clearLayers();
+    currentPolygon = null;
+    lastResult     = null;
+    document.getElementById('clearBtn').classList.remove('show');
+    document.getElementById('nameSection').style.display = 'none';
+    ['areaRai','rubberRai','rubberPct','pointCount','areaCoord']
+      .forEach(id => document.getElementById(id).textContent = '—');
+    const badge = document.getElementById('statusBadge');
+    badge.className = 'status waiting';
+    badge.innerHTML = '<span class="status-dot"></span>รอวาดพื้นที่';
+  }
+
+  // =====================================================
+  // คำนวณพื้นที่สวนยางและปริมาณคาร์บอน
+  // =====================================================
+  function analyzeArea() {
+    if (!currentPolygon || !RUBBER_DATA) return;
+
+    // แปลง Leaflet polygon เป็น GeoJSON สำหรับ Turf
+    const gj = currentPolygon.toGeoJSON();
+    const userBBox = turf.bbox(gj);
+
+    let rubberSqM = 0;
+
+    RUBBER_DATA.features.forEach(poly => {
+      // กรองเบื้องต้นด้วยกรอบสี่เหลี่ยม เพื่อลดจำนวนการคำนวณ
+      const b = turf.bbox(poly);
+      if (b[2] < userBBox[0] || b[0] > userBBox[2] ||
+          b[3] < userBBox[1] || b[1] > userBBox[3]) return;
+      try {
+        const overlap = turf.intersect(gj, poly);
+        if (overlap) rubberSqM += turf.area(overlap);
+      } catch (err) { /* ข้ามรูปหลายเหลี่ยมที่มีปัญหาทางเรขาคณิต */ }
+    });
+
+    const drawnRai  = turf.area(gj) / 1600;
+    const rubberRai = rubberSqM / 1600;
+    const pct       = drawnRai > 0 ? (rubberRai / drawnRai * 100) : 0;
+    const carbon    = rubberRai * CARBON_PER_RAI;
+
+    const c = currentPolygon.getBounds().getCenter();
+    const n = currentPolygon.getLatLngs()[0].length;
+
+    document.getElementById('areaRai').textContent   = drawnRai.toFixed(1);
+    document.getElementById('rubberRai').textContent = rubberRai.toFixed(1);
+    document.getElementById('rubberPct').textContent = pct.toFixed(1) + '%';
+    document.getElementById('pointCount').textContent = n + ' จุด';
+    document.getElementById('areaCoord').textContent =
+      c.lat.toFixed(4) + ', ' + c.lng.toFixed(4);
+
+    const badge = document.getElementById('statusBadge');
+    badge.className = 'status ready';
+    badge.innerHTML = '<span class="status-dot"></span>พร้อมคำนวณ';
+
+    lastResult = {
+      drawnRai:      drawnRai,
+      rubberRai:     rubberRai,
+      rubberPercent: pct,
+      carbonPerRai:  CARBON_PER_RAI,
+      carbonTon:     carbon,
+      carbonLower:   carbon * (1 - CI_RATIO),
+      carbonUpper:   carbon * (1 + CI_RATIO),
+      co2eq:         carbon * CO2_FACTOR,
+      centerLat:     c.lat,
+      centerLng:     c.lng,
+      coords:        currentPolygon.getLatLngs()[0].map(p => [p.lat, p.lng])
+    };
+  }
+
+  // =====================================================
+  // ส่งผลไปหน้าแสดงผล
+  // =====================================================
+  function startAnalysis() {
+    if (!lastResult) { alert('กรุณาวาดพื้นที่ก่อนครับ'); return; }
+    if (lastResult.rubberRai < 0.01) {
+      alert('บริเวณที่เลือกไม่มีพื้นที่ที่จำแนกได้ว่าเป็นสวนยางพารา\n\n' +
+        'กรุณาเลือกบริเวณที่มีชั้นข้อมูลสีเขียวปรากฏอยู่');
+      return;
+    }
+
+    lastResult.farmName = document.getElementById('farmName').value.trim()
+                          || 'พื้นที่ที่เลือก';
+    lastResult.analyzedAt = new Date().toISOString();
+
+    localStorage.setItem('carbonResult', JSON.stringify(lastResult));
+    window.location.href = 'result.html';
+  }
+</script>
+
+</body>
+</html>
